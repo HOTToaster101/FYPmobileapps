@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:id="@+id/container"
+android:layout_width="match_parent"
+android:layout_height="match_parent" >
+
+<!--
+     <TextView
+    android:id="@+id/message"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/hello_world" />
+-->
+
+<ImageView
+    android:id="@+id/imageView"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:adjustViewBounds="true"></ImageView>
+    <!--android:src="@drawable/xxx"-->
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:text="GrabCut" />
+
+    <Button
+        android:id="@+id/buttonsave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="52dp"
+        android:layout_marginEnd="20dp"
+        android:text="Save" />
+
+    <Button
+    android:id="@+id/buttonFG"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentLeft="true"
+    android:layout_below="@+id/imageView"
+    android:text="FG" />
+
+<Button
+    android:id="@+id/buttonBG"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignBaseline="@+id/buttonFG"
+    android:layout_alignBottom="@+id/buttonFG"
+    android:layout_marginLeft="18dp"
+    android:layout_toRightOf="@+id/buttonFG"
+    android:text="BG" />
+
+    <Button
+        android:id="@+id/buttonBG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonsave"
+        android:layout_alignBottom="@+id/buttonsave"
+        android:layout_marginLeft="90dp"
+        android:layout_toLeftOf="@+id/buttonsave"
+        android:text="Recover" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        tools:visibility="gone" />
+
+</RelativeLayout>
