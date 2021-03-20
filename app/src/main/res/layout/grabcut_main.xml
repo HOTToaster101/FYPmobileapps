@@ -59,7 +59,7 @@ android:layout_height="match_parent" >
     android:text="BG" />
 
     <Button
-        android:id="@+id/buttonBG"
+        android:id="@+id/buttonRec"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/buttonsave"
@@ -67,6 +67,14 @@ android:layout_height="match_parent" >
         android:layout_marginLeft="90dp"
         android:layout_toLeftOf="@+id/buttonsave"
         android:text="Recover" />
+
+    <TextView
+        android:id="@+id/tv_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Waiting for Grabcut"
+        android:layout_below="@id/buttonFG"
+        />
 
     <ProgressBar
         android:id="@+id/progressBar"

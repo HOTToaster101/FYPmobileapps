@@ -19,9 +19,13 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+
+import com.example.fyptest.tflite.Classifier;
+import com.example.fyptest.tflite.TensorFlowImageClassifier;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -37,6 +41,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -47,6 +52,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static org.opencv.imgproc.Imgproc.COLOR_BGRA2GRAY;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
@@ -104,8 +111,15 @@ public class Grabcut extends Activity implements OnTouchListener {
     float mDips = 1;
     float mMul = 1;
 
+    private Classifier classifier;
+
     public static final String TAG = "Grabcut";
 
+    private static final String MODEL_PATH = "emotion.tflite";
+    private static final String LABEL_PATH = "dict.txt";
+    private static final int INPUT_SIZE = 48;
+
+    private Executor executor = Executors.newSingleThreadExecutor();
 
     //Opencv loading
     static {
@@ -114,76 +128,18 @@ public class Grabcut extends Activity implements OnTouchListener {
         else
             Log.d("SUCCESS", "OpenCV loaded");
     }
-    /*private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i("OpenCV", "OpenCV loaded successfully");
 
-                    try {
-                        //matInitialize();
-                        image = new Mat();
-                        image_canvas = new Mat();
-                        mask = new Mat();
-                        bgdModel= new Mat();
-                        fgdModel= new Mat();
-                        foreground= new Mat();
-                        fgmask= new Mat();
-                        bgmask= new Mat();
-                        mask255= new Mat();
-                        fgdPxls= new Mat();
-                        bgdPxls= new Mat();
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                } break;
-            }
-        }
-    };*/
-
-    /*public void matInitialize() {
-        image = new Mat();
-        image_canvas = new Mat();
-        mask = new Mat();
-        bgdModel= new Mat();
-        fgdModel= new Mat();
-        foreground= new Mat();
-        fgmask= new Mat();
-        bgmask= new Mat();
-        mask255= new Mat();
-        fgdPxls= new Mat();
-        bgdPxls= new Mat();
-    }*/
-
-    /*@Override
-    public void onResume()
-    {
-        super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_4_3_0, this, mLoaderCallback);
-        } else {
-            Log.d("OpenCV", "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
-    }*/
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.grabcut_main);
 
+        initTensorFlowAndLoadModel(); // initialize the variable classifier
         progressBar = this.findViewById(R.id.progressBar);
         iv = (ImageView) this.findViewById(R.id.imageView);
         iv.setOnTouchListener(this);
+        TextView text = this.findViewById(R.id.tv_result);
         Button btn1 = (Button) this.findViewById(R.id.button1);
         btn1.setOnClickListener(new OnClickListener() {
 
@@ -193,6 +149,19 @@ public class Grabcut extends Activity implements OnTouchListener {
                 nextIteration();
                 bitmapResult = getSaveImage();
                 iv.setImageBitmap(bitmapResult);
+
+                // Adjust the bitmap to 48x48
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmapResult.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                bitmapResult = Bitmap.createScaledBitmap(bitmapResult, INPUT_SIZE, INPUT_SIZE, false);
+
+                //initiating Emotion Recognition
+                final List<Classifier.Recognition> results = classifier.recognizeImage(bitmapResult);
+                String topResult = results.get(0).getTitle(); // highest precision result (label)
+                Float topPrecision = results.get(0).getConfidence();// highest precision result (possibility)
+
+                text.setText(topResult + ", " + topPrecision);
+                //Toast.makeText(getApplicationContext(), topResult + ", " + topPrecision, Toast.LENGTH_LONG).show();
 
                 progressBar.setVisibility(View.GONE);
             }
@@ -284,6 +253,23 @@ public class Grabcut extends Activity implements OnTouchListener {
         setImage(bitmap);
 
 
+    }
+
+    private void initTensorFlowAndLoadModel() {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    classifier = TensorFlowImageClassifier.create(
+                            getAssets(),
+                            MODEL_PATH,
+                            LABEL_PATH,
+                            INPUT_SIZE);
+                } catch (final Exception e) {
+                    throw new RuntimeException("Error initializing TensorFlow!", e);
+                }
+            }
+        });
     }
 
 
