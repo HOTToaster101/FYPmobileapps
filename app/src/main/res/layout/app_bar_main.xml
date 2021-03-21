@@ -22,15 +22,6 @@
 
     <include layout="@layout/content_main" />
 
-    <Button
-        android:id="@+id/b_launch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="#FFFFFF"
-        android:text="@string/b_launch"
-        app:backgroundTint="#2196F3"
-        app:icon="@drawable/abc_vector_test" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_camera"
@@ -43,14 +34,24 @@
         app:srcCompat="@drawable/ic_menu_camera" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_share"
+        android:id="@+id/fab_sticker"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:clickable="true"
         app:backgroundTint="#00BCD4"
-        app:srcCompat="@drawable/ic_menu_share" />
+        app:srcCompat="@drawable/ic_menu_slideshow" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_homepage"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:clickable="true"
+        app:backgroundTint="#00BCD4"
+        app:srcCompat="@drawable/ic_launcher_foreground" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
@@ -59,5 +60,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/abc_vector_test" />
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

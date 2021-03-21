@@ -5,24 +5,22 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.fyptest.ui.home.HomeFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-
-import org.opencv.android.OpenCVLoader;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -35,10 +33,12 @@ public class MainActivity extends AppCompatActivity {
     boolean fabOpenedFlag = false;
     FloatingActionButton fabCamera;
     FloatingActionButton fabShare;
+    FloatingActionButton fabHome;
     ArrayList<String> mPermissions = new ArrayList();
     private static final int ALL_PERMISSIONS_RESULT = 1011;
     private static final int REQUEST_CODE_HOVER_PERMISSION = 1000;
     private boolean mPermissionsRequested = false;
+    FragmentManager manager;
 
 
     /*static {
@@ -53,11 +53,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
+        manager = ((AppCompatActivity)this).getSupportFragmentManager();
+        showMainFragment(new HomeFragment());
         setSupportActionBar(toolbar);
         //Floating Button Setting
         FloatingActionButton fab = findViewById(R.id.fab);
         fabCamera = findViewById(R.id.fab_camera);
-        fabShare = findViewById(R.id.fab_share);
+        fabShare = findViewById(R.id.fab_sticker);
+        fabHome = findViewById(R.id.fab_homepage);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,21 +77,24 @@ public class MainActivity extends AppCompatActivity {
                   Intent intent = new Intent(getApplication(), ActivityCamera.class);
                    startActivity(intent);
               }
-              //public void onClick(View view) {
-              //                               Intent intent = new Intent(getApplication(), Grabcut.class);
-               //                              startActivity(intent);
-                //                         }
 
         });
         fabShare.setOnClickListener(new View.OnClickListener() {
-                                         @Override
-                                         public void onClick(View view) {
-                                             Intent intent = new Intent(getApplication(), ActivityVideoCamera.class);
-                                             startActivity(intent);
-                                         }
-                                     });
+            @Override
+            public void onClick(View view) {
+
+                showMainFragment(new FragmentSticker());
+            }
+        });
+        fabHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                showMainFragment(new HomeFragment());
+            }
+        });
         //Navigation View Setting
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+       /** DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -96,17 +102,9 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow, R.id.fragment_sticker)
                 .setDrawerLayout(drawer)
                 .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavController navController = Navigation.findNavController(this, R.id.fragment_home);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
-        //HoverMenu Initiation
-        Button hoverLaunch = findViewById(R.id.b_launch);
-        hoverLaunch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FYPHoverMenuService.showFloatingMenu(getApplicationContext());
-            }
-        });
+        NavigationUI.setupWithNavController(navigationView, navController);**/
 
         //Start requesting permission
         mPermissions.add(Manifest.permission.CAMERA);
@@ -133,6 +131,18 @@ public class MainActivity extends AppCompatActivity {
         //End requesting permission
     }
 
+    private void showMainFragment(Fragment f){
+        manager.beginTransaction()
+                .setCustomAnimations(
+                        R.anim.fragment_fade_enter,
+                        R.anim.fragment_fade_exit
+                )
+                .replace(R.id.fragment_homepage, f, null)
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                .commit();
+    }
+
     private ArrayList<String> permissionsToRequest(ArrayList<String> permissions) {
         ArrayList<String> result = new ArrayList<>();
         for (String permission : permissions)
@@ -153,12 +163,14 @@ public class MainActivity extends AppCompatActivity {
     private void OpenFab() {
         fabCamera.animate().translationY(-getResources().getDimension(R.dimen.fab_camera_margin));
         fabShare.animate().translationY(-getResources().getDimension(R.dimen.fab_share_margin));
+        fabHome.animate().translationY(-getResources().getDimension(R.dimen.fab_homepage_margin));
         fabOpenedFlag = true;
     }
 
     private void CloseFab(){
         fabCamera.animate().translationY(0);
         fabShare.animate().translationY(0);
+        fabHome.animate().translationY(0);
         fabOpenedFlag = false;
     }
 
@@ -171,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavController navController = Navigation.findNavController(this, R.id.fragment_homepage);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }

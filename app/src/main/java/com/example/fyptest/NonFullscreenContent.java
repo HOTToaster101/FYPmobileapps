@@ -1,9 +1,11 @@
 package com.example.fyptest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 
@@ -23,6 +25,25 @@ public class NonFullscreenContent implements Content {
         public View getView() {
             if (null == mContent) {
                 mContent = LayoutInflater.from(mContext).inflate(R.layout.content_non_fullscreen, null);
+                Button bCamera = mContent.findViewById(R.id.b_return_h);
+                bCamera.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(mContent.getContext(), ActivityCamera.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        mContent.getContext().startActivity(intent);
+                    }
+                });
+
+                Button bHome = mContent.findViewById(R.id.b_home_h);
+                bHome.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(mContent.getContext(), MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        mContent.getContext().startActivity(intent);
+                    }
+                });
 
                 // We present our desire to be non-fullscreen by using WRAP_CONTENT for height.  This
                 // preference will be honored by the Hover Menu to make our content only as tall as we

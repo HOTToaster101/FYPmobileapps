@@ -7,4 +7,5 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="fab_camera_margin">76dp</dimen>
     <dimen name="fab_share_margin">136dp</dimen>
+    <dimen name="fab_homepage_margin">196dp</dimen>
 </resources>

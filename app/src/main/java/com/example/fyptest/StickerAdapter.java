@@ -1,36 +1,69 @@
 package com.example.fyptest;
 
+import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+
+import com.example.fyptest.ui.Sticker.FragmentChangeInfo;
 
 import java.util.ArrayList;
 
-public class StickerAdapter extends RecyclerView.Adapter<StickerHolder>{
+public class StickerAdapter extends BaseAdapter {
 
-    ArrayList<Sticker> stickerlist;
+    ArrayList<Sticker> stickerList;
+    Context context;
+    LayoutInflater inflater;
 
-    public StickerAdapter(ArrayList<Sticker> stickerlist) {
-        this.stickerlist = stickerlist;
+    public StickerAdapter(Context context, ArrayList<Sticker> stickerList) {
+        this.context = context;
+        inflater = LayoutInflater.from(context);
+        this.stickerList = stickerList;
     }
 
-    @NonNull
-    @Override
-    public StickerHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflate = LayoutInflater.from(parent.getContext());
-        return new StickerHolder(inflate, parent);
-    }
 
     @Override
-    public void onBindViewHolder(@NonNull StickerHolder holder, int position) {
-        Sticker s = stickerlist.get(position);
-        holder.bind(s, this, position);
+    public int getCount() {
+        return stickerList.size();
     }
 
     @Override
-    public int getItemCount() {
-        return stickerlist.size();
+    public Object getItem(int position) {
+        return null;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    @Override
+    public View getView(int position, View view, ViewGroup parent) {
+        view = inflater.inflate(R.layout.list_sticker, null);
+        ImageView imv = view.findViewById(R.id.im_sticker);
+        imv.setImageBitmap(stickerList.get(position).getImage());
+        FragmentChangeInfo fragment = new FragmentChangeInfo(stickerList.get(position));
+        FragmentManager manager = ((AppCompatActivity)view.getContext()).getSupportFragmentManager();
+        imv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Navigation.findNavController(v).navigate(R.id.nav_host_fragment);
+                manager.beginTransaction()
+                        .setCustomAnimations(
+                                R.anim.fragment_fade_enter,
+                                R.anim.fragment_fade_exit
+                        )
+                        .replace(R.id.fragment_homepage, fragment, null)
+                        .setReorderingAllowed(true)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+        return view;
     }
 }

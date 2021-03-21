@@ -5,10 +5,24 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     >
-    <TextView
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:gravity="center"
-        android:text="This content does not take up the entire screen."
-        />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="right">
+    <Button
+        android:id="@+id/b_return_h"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Camera"
+        android:layout_marginRight="10dp"/>
+
+    <Button
+        android:id="@+id/b_home_h"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Home"
+        android:layout_marginRight="10dp"/>
+    </LinearLayout>
 </LinearLayout>

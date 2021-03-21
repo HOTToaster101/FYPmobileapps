@@ -5,6 +5,9 @@ import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -148,12 +151,14 @@ public class Grabcut extends Activity implements OnTouchListener {
 
                 nextIteration();
                 bitmapResult = getSaveImage();
+                bitmapResult = toGrayscale(bitmapResult); //adjust the bitmap to greyscale
                 iv.setImageBitmap(bitmapResult);
 
                 // Adjust the bitmap to 48x48
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 bitmapResult.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 bitmapResult = Bitmap.createScaledBitmap(bitmapResult, INPUT_SIZE, INPUT_SIZE, false);
+
 
                 //initiating Emotion Recognition
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bitmapResult);
@@ -253,6 +258,23 @@ public class Grabcut extends Activity implements OnTouchListener {
         setImage(bitmap);
 
 
+    }
+
+    public Bitmap toGrayscale(Bitmap bmpOriginal)
+    {
+        int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
     }
 
     private void initTensorFlowAndLoadModel() {

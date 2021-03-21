@@ -5,8 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_sticker"
+    <GridView
+        android:id="@+id/gv_sticker"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:numColumns="3"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

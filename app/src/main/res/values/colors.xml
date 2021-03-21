@@ -15,4 +15,6 @@
     <color name="colorButton">#777777</color>
     <color name="colorTool">#FFFFFF</color>
     <color name="colorButton2">#888888</color>
+    <color name="non_select">#A1A099</color>
+    <color name="selected">#40403D</color>
 </resources>
