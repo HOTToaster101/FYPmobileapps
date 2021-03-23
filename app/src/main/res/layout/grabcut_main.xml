@@ -6,19 +6,12 @@ android:id="@+id/container"
 android:layout_width="match_parent"
 android:layout_height="match_parent" >
 
-<!--
-     <TextView
-    android:id="@+id/message"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="@string/hello_world" />
--->
 
-<ImageView
-    android:id="@+id/imageView"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:adjustViewBounds="true"></ImageView>
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"/>
     <!--android:src="@drawable/xxx"-->
 
     <Button
@@ -41,22 +34,22 @@ android:layout_height="match_parent" >
         android:text="Save" />
 
     <Button
-    android:id="@+id/buttonFG"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_alignParentLeft="true"
-    android:layout_below="@+id/imageView"
-    android:text="FG" />
+        android:id="@+id/buttonFG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/imageView"
+        android:text="FG" />
 
-<Button
-    android:id="@+id/buttonBG"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_alignBaseline="@+id/buttonFG"
-    android:layout_alignBottom="@+id/buttonFG"
-    android:layout_marginLeft="18dp"
-    android:layout_toRightOf="@+id/buttonFG"
-    android:text="BG" />
+    <Button
+        android:id="@+id/buttonBG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonFG"
+        android:layout_alignBottom="@+id/buttonFG"
+        android:layout_marginLeft="18dp"
+        android:layout_toRightOf="@+id/buttonFG"
+        android:text="BG" />
 
     <Button
         android:id="@+id/buttonRec"
@@ -83,5 +76,11 @@ android:layout_height="match_parent" >
         android:layout_centerInParent="true"
         android:visibility="gone"
         tools:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/fl_grab"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>

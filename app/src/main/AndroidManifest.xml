@@ -34,9 +34,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Grabcut">
-        </activity>
-        <activity android:name=".ActivityCamera">
+        <activity android:name=".ActivityCamera"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.FYPTest.NoActionBar">
         </activity>
         <activity android:name=".ActivityVideoCamera">
         </activity>

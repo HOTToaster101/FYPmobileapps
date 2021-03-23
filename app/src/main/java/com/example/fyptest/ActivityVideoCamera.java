@@ -28,7 +28,7 @@ public class ActivityVideoCamera extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //v = inflater.inflate(R.layout.activity_camera, container, false);
         setContentView(R.layout.activity_camera);
-        iv = (ImageView) findViewById(R.id.im_camera);
+        //iv = (ImageView) findViewById(R.id.im_camera);
         bCapture = (Button) findViewById(R.id.button_capture);
         bCapture.setOnClickListener(new View.OnClickListener() {
             @Override

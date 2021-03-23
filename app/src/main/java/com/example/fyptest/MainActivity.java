@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -75,21 +76,21 @@ public class MainActivity extends AppCompatActivity {
               @Override
               public void onClick(View view) {
                   Intent intent = new Intent(getApplication(), ActivityCamera.class);
-                   startActivity(intent);
+                  startActivity(intent);
               }
 
         });
         fabShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                CloseFab();
                 showMainFragment(new FragmentSticker());
             }
         });
         fabHome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                CloseFab();
                 showMainFragment(new HomeFragment());
             }
         });
@@ -182,11 +183,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.item_settings:
+                SettingFragment f = new SettingFragment();
+                manager.beginTransaction().replace(R.id.fragment_homepage, f, null).commit();
+                return true;
+            case R.id.item_about:
+                System.out.println("starting about fragment");
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /**@Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.fragment_homepage);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
-    }
+    }**/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

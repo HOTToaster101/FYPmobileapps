@@ -1,6 +1,9 @@
 package com.example.fyptest;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,20 +18,28 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.fyptest.tflite.Classifier;
 import com.example.fyptest.tflite.TensorFlowImageClassifier;
+import com.example.fyptest.ui.Sticker.AddStickerFragment;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -44,12 +55,15 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,13 +77,13 @@ import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.threshold;
 
-public class Grabcut extends Activity implements OnTouchListener {
+public class Grabcut extends Fragment implements OnTouchListener {
 
     //private static final Bitmap.Config ARGB_8888 = ;
     ImageView iv;
     Bitmap bitmap, bitmapResult;
+    FrameLayout fl;
     Mat img;
-
 
     ProgressBar progressBar;
 
@@ -79,19 +93,6 @@ public class Grabcut extends Activity implements OnTouchListener {
 
     int radius = 15;
     int width = -1;
-
-    /*Mat image ;
-    Mat image_canvas ;
-    Mat mask ;
-    Mat bgdModel;
-    Mat fgdModel;
-    Mat foreground;
-    Mat fgmask;
-    Mat bgmask;
-    Mat mask255;
-    Rect rect;
-    Mat fgdPxls;
-    Mat bgdPxls;*/
 
     Mat image = new Mat();
     Mat mask = new Mat();
@@ -110,11 +111,13 @@ public class Grabcut extends Activity implements OnTouchListener {
     boolean edit_fg = true;
 
     int iterCount;
+    String emotion;
 
     float mDips = 1;
     float mMul = 1;
 
     private Classifier classifier;
+    FragmentManager manager;
 
     public static final String TAG = "Grabcut";
 
@@ -132,18 +135,25 @@ public class Grabcut extends Activity implements OnTouchListener {
             Log.d("SUCCESS", "OpenCV loaded");
     }
 
+    public Grabcut(Bitmap imagebitmap){
+        this.bitmap = imagebitmap;
+    }
+
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.grabcut_main);
+        View v = inflater.inflate(R.layout.grabcut_main, container, false);
 
+        manager = ((AppCompatActivity)v.getContext()).getSupportFragmentManager();
+        emotion = "";
         initTensorFlowAndLoadModel(); // initialize the variable classifier
-        progressBar = this.findViewById(R.id.progressBar);
-        iv = (ImageView) this.findViewById(R.id.imageView);
+        progressBar = v.findViewById(R.id.progressBar);
+        fl = v.findViewById(R.id.fl_grab);
+        iv = (ImageView) v.findViewById(R.id.imageView);
         iv.setOnTouchListener(this);
-        TextView text = this.findViewById(R.id.tv_result);
-        Button btn1 = (Button) this.findViewById(R.id.button1);
+        TextView text = v.findViewById(R.id.tv_result);
+        Button btn1 = (Button) v.findViewById(R.id.button1);
         btn1.setOnClickListener(new OnClickListener() {
 
             @Override
@@ -165,6 +175,7 @@ public class Grabcut extends Activity implements OnTouchListener {
                 String topResult = results.get(0).getTitle(); // highest precision result (label)
                 Float topPrecision = results.get(0).getConfidence();// highest precision result (possibility)
 
+                emotion = topResult;
                 text.setText(topResult + ", " + topPrecision);
                 //Toast.makeText(getApplicationContext(), topResult + ", " + topPrecision, Toast.LENGTH_LONG).show();
 
@@ -172,7 +183,7 @@ public class Grabcut extends Activity implements OnTouchListener {
             }
 
         });
-        Button fgbutton = (Button) this.findViewById(R.id.buttonFG);
+        Button fgbutton = (Button) v.findViewById(R.id.buttonFG);
         fgbutton.setOnClickListener(new OnClickListener() {
 
             @Override
@@ -181,7 +192,7 @@ public class Grabcut extends Activity implements OnTouchListener {
             }
 
         });
-        Button bgbutton = (Button) this.findViewById(R.id.buttonBG);
+        Button bgbutton = (Button) v.findViewById(R.id.buttonBG);
         bgbutton.setOnClickListener(new OnClickListener() {
 
             @Override
@@ -190,31 +201,39 @@ public class Grabcut extends Activity implements OnTouchListener {
             }
 
         });
-        Button savebutton = (Button) this.findViewById(R.id.buttonsave);
+        Button savebutton = (Button) v.findViewById(R.id.buttonsave);
         savebutton.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
-                saveaspic();
+                System.out.println("save function is running");
+                getPreference();
             }
 
         });
+        /**Button recButton = (Button) v.findViewById(R.id.buttonRec);
+        recButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                frameTransit();
+            }
+        });**/
 
 
-        if (iv.getDrawable() instanceof BitmapDrawable) {
+        /**if (iv.getDrawable() instanceof BitmapDrawable) {
             bitmap = ((BitmapDrawable) iv.getDrawable()).getBitmap();
         } else {
             //Drawable d = iv.getDrawable();
             // bitmap = Bitmap.createBitmap(d.getIntrinsicWidth(), d.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-            if (getIntent() != null) {
+            if (getActivity().getIntent() != null) {
                 //String filename = getIntent().getStringExtra("pictureinput");
                 try {
-                    FileInputStream is = this.openFileInput("myImage");
+                    FileInputStream is = this.getActivity().openFileInput("myImage");
                     bitmap = BitmapFactory.decodeStream(is);
                     is.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Toast.makeText(this, "error: cannot retrieve captured image", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(this, "error: cannot retrieve captured image", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -223,7 +242,7 @@ public class Grabcut extends Activity implements OnTouchListener {
            // Canvas canvas = new Canvas(newbitmap);
             //Canvas canvas = new Canvas(bitmap);
             //d.draw(canvas);
-        }
+        }**/
         //BitmapDrawable
         //Bitmap _bitmap = ((BitmapDrawable)iv.getDrawable()).getBitmap();
         Log.i(TAG, "_bitmap getWidth=" + bitmap.getWidth() + ",_bitmap.getHeight()=" + bitmap.getHeight());
@@ -257,11 +276,10 @@ public class Grabcut extends Activity implements OnTouchListener {
         bitmap.getWidth();
         setImage(bitmap);
 
-
+        return v;
     }
 
-    public Bitmap toGrayscale(Bitmap bmpOriginal)
-    {
+    public Bitmap toGrayscale(Bitmap bmpOriginal) {
         int width, height;
         height = bmpOriginal.getHeight();
         width = bmpOriginal.getWidth();
@@ -283,7 +301,7 @@ public class Grabcut extends Activity implements OnTouchListener {
             public void run() {
                 try {
                     classifier = TensorFlowImageClassifier.create(
-                            getAssets(),
+                            getActivity().getAssets(),
                             MODEL_PATH,
                             LABEL_PATH,
                             INPUT_SIZE);
@@ -536,14 +554,13 @@ public class Grabcut extends Activity implements OnTouchListener {
     public void saveaspic() {
         /*bitmapResult = finaltransparentbackground();*/
         log("SavingImage");
-        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        ContextWrapper cw = new ContextWrapper(getActivity().getApplicationContext());
         //File sdkPath = cw.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         //String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.png";
         String state = Environment.getExternalStorageState();
+        int countId = getStickerCount();
         if(state.equals(Environment.MEDIA_MOUNTED)) {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US);
-            Date now = new Date();
-            String path = getExternalFilesDir(null) + formatter.format(now)+"grabcut.webp";
+            String path = getActivity().getExternalFilesDir(null) + File.separator + Integer.toString(countId) + "grabcut.webp";
             File file = new File(path);
             if (!file.exists()) {
                 Log.d("path", file.toString());
@@ -557,14 +574,150 @@ public class Grabcut extends Activity implements OnTouchListener {
                     }
                     fileOutputStream.flush();
                     fileOutputStream.close();
-                    Toast.makeText(this, "Save successfully! path = " + Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.webp", Toast.LENGTH_LONG).show();
-                    //System.out.println("Save successfully! path = " + Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.png");
+                    //Toast.makeText(this, "Save successfully! path = " + path, Toast.LENGTH_LONG).show();
+                    System.out.println("Save successfully! path = " + path);
                 } catch (java.io.IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-        finish();
+        AddStickerFragment f = new AddStickerFragment(bitmapResult, countId);
+        //frameTransit();
+        manager.beginTransaction()
+                .setCustomAnimations(
+                        R.anim.fragment_fade_enter,
+                        R.anim.fragment_fade_exit
+                )
+                .replace(R.id.fl_camera, f, null)
+                .commit();
+
+        //finish();
+    }
+
+    public int getStickerCount(){
+        String state = Environment.getExternalStorageState();
+        int count = 0;
+        if(state.equals(Environment.MEDIA_MOUNTED)) {
+            String path = getActivity().getExternalFilesDir(null) + "/config.txt";
+            File file = new File(path);
+            //file.delete();
+            if (!file.exists()) {
+                try {
+                    file.createNewFile();
+                    FileOutputStream fos = new FileOutputStream(file);
+                    fos.write(Integer.toString(1).getBytes());
+                    fos.close();
+                    //Toast.makeText(this, "Save successfully! path = " + Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.webp", Toast.LENGTH_LONG).show();
+                    //System.out.println("Save successfully! path = " + Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.png");
+                } catch (java.io.IOException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(file));
+                    String line = br.readLine();
+                    count = Integer.parseInt(line);
+
+                    br.close();
+                    updateCount(count + 1);
+                }
+                catch (IOException e) {
+                    //You'll need to add proper error handling here
+                }
+
+            }
+        }
+        System.out.println("the current count is " + count);
+        return count;
+    }
+
+    public void updateCount(int i){
+        String path = getActivity().getExternalFilesDir(null) + "/config.txt";
+        File file = new File(path);
+        file.delete();
+        try{
+            file.createNewFile();
+
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(Integer.toString(i).getBytes());
+            fos.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void getPreference(){
+        String path = getActivity().getExternalFilesDir(null) + File.separator +"pref.txt";
+        File file = new File(path);
+        try{
+            if(file.exists()){
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line = br.readLine();
+
+                if(line.equals("sticker")){
+                    saveaspic();
+                }else if(line.equals("emoji")){
+                    System.out.println("generate emoji to clipboard");
+                    createEmoji();
+                }
+
+                br.close();
+            }else{
+                saveaspic();
+            }
+
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createEmoji(){
+        ClipboardManager clipboard = (ClipboardManager)
+                getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+
+        String emoji;
+        String laughEmoji1 = new String(Character.toChars(0x1F602));
+        switch(emotion){
+            case "Happy":
+                emoji = laughEmoji1;
+                System.out.println("happy is generated ");
+                break;
+            case "Angry":
+                emoji = new String(Character.toChars(0x1F620)); //angry face
+                System.out.println("angry is generated ");
+                break;
+            case "Sad":
+                emoji = new String(Character.toChars(0x1F62D)); //laoudly crying face
+                System.out.println("sad is generated ");
+                break;
+            case "Neutral":
+                emoji = new String(Character.toChars(0x1F610)); //neural face
+                System.out.println("neutral is generated ");
+                break;
+            case "Fear":
+                emoji = new String(Character.toChars(0x1F628)); //fearful face
+                System.out.println("fear is generated ");
+                break;
+            case "Disgust":
+                emoji = new String(Character.toChars(0x1F612)); //unamused face
+                System.out.println("disgust is generated ");
+                break;
+            case "Surprise":
+                emoji = new String(Character.toChars(0x1F62E)); //face with open mouth
+                System.out.println("surprise is generated ");
+                break;
+            default:
+                emoji = new String(Character.toChars(0x1F603)); //smiling with open mouth face
+                System.out.println("nothing is generated ");
+                break;
+        }
+
+        ClipData clip = ClipData.newPlainText("testLabel", emoji);
+        System.out.println("emoji is generated " + emotion);
+
+        clipboard.setPrimaryClip(clip);
     }
 
     public static void log(String message) {

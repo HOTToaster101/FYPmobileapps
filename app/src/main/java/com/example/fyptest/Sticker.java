@@ -7,10 +7,12 @@ public class Sticker {
     private int id;
     private Bitmap image;
     private String name;
+    private String date;
 
-    public Sticker(int id, Bitmap image){
+    public Sticker(int id, String date, Bitmap image){
         this.id = id;
         this.image = image;
+        this.date = date;
         this.name = "" + id;
     }
 
@@ -29,5 +31,7 @@ public class Sticker {
     public String getName(){
         return name;
     }
+
+    public String getDate(){return date;}
 
 }
