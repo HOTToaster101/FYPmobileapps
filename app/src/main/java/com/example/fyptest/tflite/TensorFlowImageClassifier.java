@@ -9,6 +9,10 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.support.image.ImageProcessor;
+import org.tensorflow.lite.support.image.ops.ResizeOp;
+import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp;
+import org.tensorflow.lite.support.image.ops.Rot90Op;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -33,8 +37,8 @@ public class TensorFlowImageClassifier implements Classifier {
     private static final float THRESHOLD = 0.1f;
     //private static final int CONST = 100352;
 
-    private static final int IMAGE_MEAN = 128;
-    private static final float IMAGE_STD = 255.0f;
+    private static final int IMAGE_MEAN = 127;
+    private static final float IMAGE_STD = 127.0f;
 
     private Interpreter interpreter;
     private int inputSize;
@@ -63,7 +67,12 @@ public class TensorFlowImageClassifier implements Classifier {
         float[][] result = new float[1][labelList.size()];
 
         long startTime = SystemClock.uptimeMillis();
-
+        byte[] ss = byteBuffer.array();
+        for(int i = 0; i < byteBuffer.capacity(); i += 4){
+            float f = byteBuffer.getFloat(i);
+            System.out.println((byteBuffer.capacity() - i) + "float is " + f);
+        }
+        System.out.println(interpreter.getInputTensor(0).shape()[3]);
         interpreter.run(byteBuffer, result);
 
         long endTime = SystemClock.uptimeMillis();
@@ -111,8 +120,8 @@ public class TensorFlowImageClassifier implements Classifier {
             for (int j = 0; j < inputSize; ++j) {
                 final int val = intValues[pixel++];
                 System.out.println(Color.red(val) + ", " + byteBuffer.remaining());
-                byteBuffer.putFloat(Color.red(val)/IMAGE_STD);
-                System.out.println( val + "remaining bytesize = " + byteBuffer.remaining());
+                byteBuffer.putFloat((Color.red(val) - IMAGE_MEAN)/IMAGE_STD);
+                //System.out.println( val + "remaining bytesize = " + byteBuffer.remaining());
                 //byteBuffer.putFloat((((val >> 8) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);
                 //byteBuffer.putFloat((((val) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);
 

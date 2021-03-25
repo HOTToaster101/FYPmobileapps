@@ -1,18 +1,14 @@
 package com.example.fyptest;
 
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -29,10 +25,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -41,8 +34,6 @@ import com.example.fyptest.tflite.Classifier;
 import com.example.fyptest.tflite.TensorFlowImageClassifier;
 import com.example.fyptest.ui.Sticker.AddStickerFragment;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -58,21 +49,14 @@ import org.opencv.imgproc.Imgproc;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static org.opencv.imgproc.Imgproc.COLOR_BGRA2GRAY;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.threshold;
@@ -121,7 +105,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
     public static final String TAG = "Grabcut";
 
-    private static final String MODEL_PATH = "emotion.tflite";
+    private static final String MODEL_PATH = "emotion60.tflite";
     private static final String LABEL_PATH = "dict.txt";
     private static final int INPUT_SIZE = 48;
 
@@ -162,13 +146,12 @@ public class Grabcut extends Fragment implements OnTouchListener {
                 nextIteration();
                 bitmapResult = getSaveImage();
                 bitmapResult = toGrayscale(bitmapResult); //adjust the bitmap to greyscale
-                iv.setImageBitmap(bitmapResult);
 
                 // Adjust the bitmap to 48x48
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 bitmapResult.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 bitmapResult = Bitmap.createScaledBitmap(bitmapResult, INPUT_SIZE, INPUT_SIZE, false);
-
+                iv.setImageBitmap(bitmapResult);
 
                 //initiating Emotion Recognition
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bitmapResult);
@@ -177,6 +160,10 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
                 emotion = topResult;
                 text.setText(topResult + ", " + topPrecision);
+                for(int i = 0; i < 7; i++){
+                    System.out.println("the percision: " + results.get(i).getTitle() + results.get(i).getConfidence());
+                }
+
                 //Toast.makeText(getApplicationContext(), topResult + ", " + topPrecision, Toast.LENGTH_LONG).show();
 
                 progressBar.setVisibility(View.GONE);
@@ -211,13 +198,30 @@ public class Grabcut extends Fragment implements OnTouchListener {
             }
 
         });
-        /**Button recButton = (Button) v.findViewById(R.id.buttonRec);
+        Button recButton = (Button) v.findViewById(R.id.buttonRec);
         recButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                frameTransit();
+                bitmapResult = getSaveImage();
+                bitmapResult = toGrayscale(bitmapResult); //adjust the bitmap to greyscale
+                iv.setImageBitmap(bitmapResult);
+
+                // Adjust the bitmap to 48x48
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmapResult.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                bitmapResult = Bitmap.createScaledBitmap(bitmapResult, INPUT_SIZE, INPUT_SIZE, false);
+
+
+                //initiating Emotion Recognition
+                final List<Classifier.Recognition> results = classifier.recognizeImage(bitmapResult);
+                String topResult = results.get(0).getTitle(); // highest precision result (label)
+                Float topPrecision = results.get(0).getConfidence();// highest precision result (possibility)
+
+                emotion = topResult;
+                text.setText(topResult + ", " + topPrecision);
+                //Toast.makeText(getApplicationContext(), topResult + ", " + topPrecision, Toast.LENGTH_LONG).show();
             }
-        });**/
+        });
 
 
         /**if (iv.getDrawable() instanceof BitmapDrawable) {

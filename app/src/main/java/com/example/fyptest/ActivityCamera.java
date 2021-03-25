@@ -1,11 +1,20 @@
 package com.example.fyptest;
 
+import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.FileUtils;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,34 +29,58 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 
 public class ActivityCamera extends AppCompatActivity {
 
     View v;
     //ImageView iv;
-    Button bCapture;
+    Button bCapture, bVideo;
     Toolbar bar;
     MenuItem iSet;
+    int height, width;
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_IMAGE_CAPTURE = 3;
+    static final int REQUEST_VIDEO_CAPTURE = 1;
+    private static final int FILE_SELECT_CODE = 0;
+    private static final int FILE_CROP_CODE = 2;
     FragmentManager manager;
+    private Uri fileUri;
+    private String filePath;
+    private TestFragment f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         manager = getSupportFragmentManager();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        height = displayMetrics.heightPixels;
+        width = displayMetrics.widthPixels;
         bCapture = (Button) findViewById(R.id.button_capture);
         bCapture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dispatchPictureTakerAction();
+                showFileChooser();
+            }
+        });
+        bCapture.setClickable(true);
+        bVideo = (Button) findViewById(R.id.button_vcapture);
+        bVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dispatchVideoTakerAction();
             }
         });
         bCapture.setClickable(true);
         bar = (Toolbar) findViewById(R.id.topAppBar);
         setSupportActionBar(bar);
+        f = new TestFragment();
+        manager.beginTransaction().replace(R.id.fl_camera, f, null).commit();
     }
 
     public void dispatchPictureTakerAction(){
@@ -64,20 +97,18 @@ public class ActivityCamera extends AppCompatActivity {
         }
     }
 
-    public String createImageFromBitmap(Bitmap bitmap) {
-        String fileName = "myImage";//no .png or .jpg needed
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-            FileOutputStream fo = openFileOutput(fileName, Context.MODE_PRIVATE);
-            fo.write(bytes.toByteArray());
-            // remember close file output
-            fo.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            fileName = null;
+    public void dispatchVideoTakerAction(){
+        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+        }else{
+            Toast.makeText(this, "Camera cannot be opened", Toast.LENGTH_LONG).show();
         }
-        return fileName;
+        try{
+            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+        }catch(Exception e){
+            System.out.println(e.getStackTrace());
+        }
     }
 
     @Override
@@ -86,14 +117,38 @@ public class ActivityCamera extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            int height = displayMetrics.heightPixels;
-            int width = displayMetrics.widthPixels;
-            imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height - 600, false);
-            /**Intent grabcutintent = new Intent(this, Grabcut.class);
-            grabcutintent.putExtra("pictureinput", createImageFromBitmap(imageBitmap));
-            startActivity(grabcutintent);**/
+
+            imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, width, false);
+            hideButton();
+            Grabcut f = new Grabcut(imageBitmap);
+            manager.beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.fragment_fade_enter,
+                            R.anim.fragment_fade_exit
+                    )
+                    .replace(R.id.fl_camera, f, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack(null)
+                    .commit();
+        }else if(requestCode == FILE_SELECT_CODE && resultCode == RESULT_OK) {
+            fileUri = data.getData();
+            //filePath = getRealPathFromURI_API19(this, fileUri);
+
+            //performCrop(fileUri);
+            openFragment();
+
+        }else if(requestCode == FILE_CROP_CODE && resultCode == RESULT_OK){
+            Bundle extras = data.getExtras();
+            // get the cropped bitmap
+            Bitmap selectedBitmap = extras.getParcelable("data");
+
+            System.out.println("Recieve the result");
+
+            //openFragment(selectedBitmap);
+        }else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
             hideButton();
             Grabcut f = new Grabcut(imageBitmap);
             manager.beginTransaction()
@@ -106,7 +161,116 @@ public class ActivityCamera extends AppCompatActivity {
                     .addToBackStack(null)
                     .commit();
         }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
+    private void openFragment(){
+        Bitmap b = null;
+        Bitmap result = null;
+        try{
+            InputStream in =  getContentResolver().openInputStream(fileUri);
+            //byte[] buf = new byte[1024];
+            System.out.println("sending bitmap to grabcut.java");
+            b = BitmapFactory.decodeStream(in);
+            //b = Bitmap.createScaledBitmap(b, width, height - 600, false);
+
+            System.out.println(b.getWidth() + ", " + b.getHeight());
+            result = cropImage(f.getW(), f.getH(), f.getoffX(), f.getoffY(), b);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        hideButton();
+        Grabcut f1 = new Grabcut(result);
+        manager.beginTransaction()
+                .setCustomAnimations(
+                        R.anim.fragment_fade_enter,
+                        R.anim.fragment_fade_exit
+                )
+                .replace(R.id.fl_camera, f1, null)
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private Bitmap cropImage(int width, int height, int offsetx, int offsety, Bitmap b){
+        /**int width = b.getWidth() - 300;
+        int height = b.getHeight() - 300;
+        int offsetx = 300;
+        int offsety = 300;**/
+        int pixel[] = new int[height * width];
+        for(int y = 0; y < height - 1; y++){
+            for(int x = 0; x < width - 1; x++){
+                pixel[y * width + x] = b.getPixel(x + offsetx, y + offsety);
+            }
+        }
+        System.out.println(pixel.length + ", " + b.getByteCount());
+        //b.getPixels(pixel, 0, b.getWidth(), 50, 50, b.getWidth() - 100, b.getHeight() - 100);
+
+        Bitmap result = Bitmap.createBitmap(pixel, width, height, Bitmap.Config.ARGB_8888);
+        return result;
+    }
+
+    private void showFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, "Select a File to Upload"),
+                    FILE_SELECT_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Please install a File Manager.",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void performCrop(Uri picUri) {
+        try {
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            System.out.println("starting the cropping process");
+            // indicate image type and Uri
+            cropIntent.setDataAndType(picUri, "image/*");
+            // set crop properties here
+            cropIntent.putExtra("crop", true);
+            // indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            // indicate output X and Y
+            cropIntent.putExtra("outputX", 1);
+            cropIntent.putExtra("outputY", 1);
+            // retrieve data on return
+            cropIntent.putExtra("return-data", true);
+
+            File f = new File(getExternalFilesDir(null) + "/testcrop.jpg");
+            cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+            // start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, FILE_CROP_CODE);
+        }
+        // respond to users whose devices do not support the crop action
+        catch (ActivityNotFoundException anfe) {
+            // display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
+    public String getRealPathFromURI_API19(Context context, Uri uri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = context.getContentResolver().query(uri,  proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            System.out.println(cursor.getString(column_index));
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 
     @Override
@@ -139,6 +303,8 @@ public class ActivityCamera extends AppCompatActivity {
     private void hideButton(){
         bCapture.animate().scaleY(0);
         bCapture.setClickable(false);
+        bVideo.animate().scaleY(0);
+        bVideo.setClickable(false);
         iSet.setEnabled(false);
     }
 

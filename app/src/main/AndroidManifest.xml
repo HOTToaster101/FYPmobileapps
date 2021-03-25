@@ -38,8 +38,7 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.FYPTest.NoActionBar">
         </activity>
-        <activity android:name=".ActivityVideoCamera">
-        </activity>
+
         <service android:name=".FYPHoverMenuService" />
     </application>
 

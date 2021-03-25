@@ -28,7 +28,7 @@ android {
     }
 
     aaptOptions{
-        noCompress "emotion.tflite"
+        noCompress "emotion60.tflite"
     }
 }
 
