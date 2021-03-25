@@ -86,14 +86,11 @@ public class ActivityCamera extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            DisplayMetrics displayMetrics = new DisplayMetrics();
+            /**DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             int height = displayMetrics.heightPixels;
             int width = displayMetrics.widthPixels;
-            imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height - 600, false);
-            /**Intent grabcutintent = new Intent(this, Grabcut.class);
-            grabcutintent.putExtra("pictureinput", createImageFromBitmap(imageBitmap));
-            startActivity(grabcutintent);**/
+            imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height - 600, false);**/
             hideButton();
             Grabcut f = new Grabcut(imageBitmap);
             manager.beginTransaction()

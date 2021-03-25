@@ -1,5 +1,6 @@
 package com.example.fyptest.ui.Sticker;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
@@ -8,10 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.example.fyptest.MainActivity;
 import com.example.fyptest.R;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -31,10 +34,12 @@ public class AddStickerFragment extends Fragment {
     ImageView im;
     Bitmap b;
     int id;
+    String emotion;
 
-    public AddStickerFragment(Bitmap b, int id){
+    public AddStickerFragment(Bitmap b, int id, String emotion){
         this.b = b;
         this.id = id;
+        this.emotion = emotion;
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -55,12 +60,12 @@ public class AddStickerFragment extends Fragment {
     }
 
     public void addSticker(){
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US);
+        /**SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US);
         Date now = new Date();
-        formatter.format(now);
+        formatter.format(now);**/
         String state = Environment.getExternalStorageState();
         String info = input.getEditText().getText().toString();
-        String time = formatter.format(now);
+        //String time = formatter.format(now);
         byte[] ls = System.getProperty("line.separator").getBytes();
         if(state.equals(Environment.MEDIA_MOUNTED)) {
             String path = getActivity().getExternalFilesDir(null) + File.separator + Integer.toString(id) + "grabcut.txt";
@@ -74,16 +79,18 @@ public class AddStickerFragment extends Fragment {
                     fos.write(ls);
                     fos.write(info.getBytes());
                     fos.write(ls);
-                    fos.write(time.getBytes());
+                    fos.write(emotion.getBytes());
                     fos.close();
-                    //Toast.makeText(this, "Save successfully! path = " + Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.webp", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this.getContext(), "The Sticker is saved", 0).show();
                     //System.out.println("Save successfully! path = " + Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.png");
+                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                    startActivity(intent);
                 } catch (java.io.IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-        System.out.println("the current count is " + id + ", " + info + time);
+        System.out.println("the current count is " + id + ", " + info + emotion);
     }
 
 }

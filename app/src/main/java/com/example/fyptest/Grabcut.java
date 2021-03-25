@@ -81,7 +81,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
     //private static final Bitmap.Config ARGB_8888 = ;
     ImageView iv;
-    Bitmap bitmap, bitmapResult;
+    Bitmap bitmap, bitmapResult, bitShow;
     FrameLayout fl;
     Mat img;
 
@@ -93,6 +93,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
     int radius = 15;
     int width = -1;
+    int Swidth, Sheight;
 
     Mat image = new Mat();
     Mat mask = new Mat();
@@ -162,7 +163,9 @@ public class Grabcut extends Fragment implements OnTouchListener {
                 nextIteration();
                 bitmapResult = getSaveImage();
                 bitmapResult = toGrayscale(bitmapResult); //adjust the bitmap to greyscale
-                iv.setImageBitmap(bitmapResult);
+                bitShow = Bitmap.createBitmap(bitmapResult);
+                bitShow = Bitmap.createScaledBitmap(bitShow, Swidth, Sheight - 600, false);
+                iv.setImageBitmap(bitShow);
 
                 // Adjust the bitmap to 48x48
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -267,7 +270,14 @@ public class Grabcut extends Fragment implements OnTouchListener {
         }*/
         bitmap = getResizedBitmap(bitmap, 512);
         bitmapResult = getResizedBitmap(bitmapResult, 512);
-        iv.setImageBitmap(bitmap);
+
+        // get the screen width and height
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        this.getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        Sheight = displayMetrics.heightPixels;
+        Swidth = displayMetrics.widthPixels;
+        bitShow = Bitmap.createScaledBitmap(bitmap, Swidth, Sheight - 600, false);
+        iv.setImageBitmap(bitShow);
 
         //bitmapResult
         img = new Mat();
@@ -581,7 +591,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
                 }
             }
         }
-        AddStickerFragment f = new AddStickerFragment(bitmapResult, countId);
+        AddStickerFragment f = new AddStickerFragment(bitmapResult, countId, emotion);
         //frameTransit();
         manager.beginTransaction()
                 .setCustomAnimations(
@@ -718,6 +728,8 @@ public class Grabcut extends Fragment implements OnTouchListener {
         System.out.println("emoji is generated " + emotion);
 
         clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(getContext(), "Successfully generate " + emotion + " emoji", Toast.LENGTH_LONG).show();
     }
 
     public static void log(String message) {
