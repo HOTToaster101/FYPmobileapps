@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
 }
 
+
+
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.2"
@@ -14,7 +16,27 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild{
+            cmake{
+                //cppFlags "-std=c++14"
+                //abiFilter 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64',"-DANDROID_ARM_NEON=1"
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+
     }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+    //sourceSets{
+        //main {
+          // jniLibs.srcDirs = ['libs']
+        //}
+ //  }
 
     buildTypes {
         release {
@@ -26,10 +48,75 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    packagingOptions {
+        //pickFirst 'lib/x86/libc++_shared.so'
+        //pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        //pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        //pickFirst 'lib/x86_64/libc++_shared.so'
+
+        exclude 'META-INF/native-image/macosx-x86_64/jnijavacpp/reflect-config.json'
+        exclude 'META-INF/native-image/macosx-x86_64/jnijavacpp/jni-config.json'
+        exclude 'META-INF/native-image/android-arm/jnijavacpp/jni-config.json'
+        exclude 'META-INF/native-image/android-arm/jnijavacpp/reflect-config.json'
+        exclude 'META-INF/native-image/android-arm64/jnijavacpp/jni-config.json'
+        exclude 'META-INF/native-image/android-arm64/jnijavacpp/reflect-config.json'
+        exclude 'META-INF/native-image/android-x86/jnijavacpp/jni-config.json'
+        exclude 'META-INF/native-image/android-x86/jnijavacpp/reflect-config.json'
+        pickFirst 'lib/x86/libavformat.so'
+        pickFirst 'lib/armeabi-v7a/libavformat.so'
+        pickFirst 'lib/arm64-v8a/libavformat.so'
+        pickFirst 'lib/x86/libavcodec.so'
+        pickFirst 'lib/armeabi-v7a/libavcodec.so'
+        pickFirst 'lib/arm64-v8a/libavcodec.so'
+        pickFirst 'lib/arm64-v8a/libavutil.so'
+        pickFirst 'lib/arm64-v8a/libavfilter.so'
+        pickFirst 'lib/x86/libavdevice.so'
+        pickFirst 'lib/x86/libavutil.so'
+        pickFirst 'lib/x86/libswscale.so'
+        pickFirst 'lib/x86/libavfilter.so'
+        pickFirst 'lib/armeabi-v7a/libswscale.so'
+        pickFirst 'lib/arm64-v8a/libswscale.so'
+        pickFirst 'lib/arm64-v8a/libavdevice.so'
+        pickFirst 'lib/armeabi-v7a/libavdevice.so'
+        pickFirst 'lib/armeabi-v7a/libavutil.so'
+        pickFirst 'lib/armeabi-v7a/libswresample.so'
+        pickFirst 'lib/arm64-v8a/libswresample.so'
+        pickFirst 'lib/x86/libswresample.so'
+        pickFirst 'lib/armeabi-v7a/libavfilter.so'
+
+
+
+
+
+    }
+    repositories {
+        flatDir {
+            dirs("src/main/jniLibs")
+        }
+    }
+    sourceSets {
+        main {
+            jni {
+                srcDirs 'src/main/jniLibs'
+            }
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86'
+
+            universalApk false
+        }
+    }
 
     aaptOptions{
-        noCompress "emotion.tflite"
+        noCompress "emotion60.tflite"
     }
+
+
 }
 
 dependencies {
@@ -41,15 +128,33 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui:2.2.2'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
+    //implementation 'com.arthenica:mobile-ffmpeg-video:4.4.LTS'
+    //implementation 'com.github.dragon66:android-gif-animated-writer:master-SNAPSHOT'
+    //implementation (group: 'org.bytedeco', name: 'javacv', version: '1.4.4') {
+        //exclude group: 'org.bytedeco.javacpp-presets', module: 'opencv'
+    //}
+    //implementation group: 'org.bytedeco', name: 'javacv', version: '1.5.4'
+    //implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '4.0.1-1.4.4', classifier: 'android-arm'
+    //implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '4.0.1-1.4.4', classifier: 'android-x86'
+    //implementation group: 'org.bytedeco.javacpp-presets', name: 'ffmpeg', version: '4.1-1.4.4', classifier: 'android-arm'
+   // implementation group: 'org.bytedeco.javacpp-presets', name: 'ffmpeg', version: '4.1-1.4.4', classifier: 'android-x86'
     implementation 'io.mattcarroll.hover:hover:0.9.8'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.support:support-annotations:28.0.0'
     implementation 'io.realm:android-adapters:3.1.0'
-    implementation 'com.quickbirdstudios:opencv:4.3.0-contrib'
+    //implementation 'com.quickbirdstudios:opencv:4.3.0-contrib'
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
     implementation 'org.tensorflow:tensorflow-lite-support:0.1.0-rc1'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1'
+    implementation project(path: ':opencv_java_430')
+    implementation project(path: ':mobile-ffmpeg-video-4.4.LTS')
+    //implementation project(path: ':libwebp')
+    //implementation files('src/main/jniLibs/android-gif-animated-writer.jar')
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation fileTree(dir: "src/main/jniLibs", include: ["*.jar"])
+    implementation fileTree(dir: "src/main/jniLibs", include: ["*.aar"])
+
 }
