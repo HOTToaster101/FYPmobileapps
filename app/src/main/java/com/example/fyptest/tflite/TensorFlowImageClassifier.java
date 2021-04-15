@@ -33,8 +33,8 @@ public class TensorFlowImageClassifier implements Classifier {
     private static final float THRESHOLD = 0.1f;
     //private static final int CONST = 100352;
 
-    private static final int IMAGE_MEAN = 128;
-    private static final float IMAGE_STD = 255.0f;
+    private static final int IMAGE_MEAN = 127;
+    private static final float IMAGE_STD = 127.0f;
 
     private Interpreter interpreter;
     private int inputSize;
@@ -111,7 +111,7 @@ public class TensorFlowImageClassifier implements Classifier {
             for (int j = 0; j < inputSize; ++j) {
                 final int val = intValues[pixel++];
                 System.out.println(Color.red(val) + ", " + byteBuffer.remaining());
-                byteBuffer.putFloat(Color.red(val)/IMAGE_STD);
+                byteBuffer.putFloat((Color.red(val) - IMAGE_MEAN) / IMAGE_STD);
                 System.out.println( val + "remaining bytesize = " + byteBuffer.remaining());
                 //byteBuffer.putFloat((((val >> 8) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);
                 //byteBuffer.putFloat((((val) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);

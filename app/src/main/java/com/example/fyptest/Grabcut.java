@@ -122,7 +122,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
     public static final String TAG = "Grabcut";
 
-    private static final String MODEL_PATH = "emotion.tflite";
+    private static final String MODEL_PATH = "50epochs2.tflite";
     private static final String LABEL_PATH = "dict.txt";
     private static final int INPUT_SIZE = 48;
 
