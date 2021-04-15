@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sticker or Emoji to be generated"
+        android:textSize="20dp"
+        android:padding="10dp"
+        />
+
+    <RadioGroup
+        android:id="@+id/radiogroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        >
+
+        <RadioButton
+            android:id="@+id/rb_sticker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sticker" />
+
+        <RadioButton
+            android:id="@+id/rb_emoji"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Emoji" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/b_confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Confirm" />
+
+
+</LinearLayout>
