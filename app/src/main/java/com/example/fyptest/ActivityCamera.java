@@ -62,7 +62,7 @@ public class ActivityCamera extends AppCompatActivity {
     FragmentManager manager;
     private Uri fileUri;
     private String filePath;
-    private TestFragment f;
+    //private TestFragment f;
     private Uri vfileUrl;
 
     @Override
@@ -102,11 +102,11 @@ public class ActivityCamera extends AppCompatActivity {
         }else{
             Toast.makeText(this, "Camera cannot be opened", Toast.LENGTH_LONG).show();
         }
-        try{
+        /*try{
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }catch(Exception e){
             System.out.println(e.getStackTrace());
-        }
+        }*/
     }
 
     public void dispatchVideoTakerAction(){
@@ -150,6 +150,7 @@ public class ActivityCamera extends AppCompatActivity {
         return fileName;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -157,7 +158,7 @@ public class ActivityCamera extends AppCompatActivity {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
 
-            imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, width, false);
+            //imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, width, false);
             hideButton();
             Grabcut f = new Grabcut(imageBitmap);
             manager.beginTransaction()
@@ -246,7 +247,7 @@ public class ActivityCamera extends AppCompatActivity {
             //b = Bitmap.createScaledBitmap(b, width, height - 600, false);
 
             System.out.println(b.getWidth() + ", " + b.getHeight());
-            result = cropImage(f.getW(), f.getH(), f.getoffX(), f.getoffY(), b);
+            //result = cropImage(f.getW(), f.getH(), f.getoffX(), f.getoffY(), b);
         }catch(Exception e){
             e.printStackTrace();
         }

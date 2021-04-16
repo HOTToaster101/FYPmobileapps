@@ -81,7 +81,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
     //private static final Bitmap.Config ARGB_8888 = ;
     ImageView iv;
-    Bitmap bitmap, bitmapResult, bitShow;
+    Bitmap bitmap, bitmapResult, bitShow, bitmapOrigin;
     FrameLayout fl;
     Mat img;
 
@@ -138,6 +138,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
     public Grabcut(Bitmap imagebitmap){
         this.bitmap = imagebitmap;
+        bitmapOrigin = imagebitmap;
     }
 
 
@@ -149,6 +150,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
         manager = ((AppCompatActivity)v.getContext()).getSupportFragmentManager();
         emotion = "";
         initTensorFlowAndLoadModel(); // initialize the variable classifier
+
         progressBar = v.findViewById(R.id.progressBar);
         fl = v.findViewById(R.id.fl_grab);
         iv = (ImageView) v.findViewById(R.id.imageView);
@@ -162,6 +164,7 @@ public class Grabcut extends Fragment implements OnTouchListener {
 
                 nextIteration();
                 bitmapResult = getSaveImage();
+
                 bitmapResult = toGrayscale(bitmapResult); //adjust the bitmap to greyscale
                 bitShow = Bitmap.createBitmap(bitmapResult);
                 bitShow = Bitmap.createScaledBitmap(bitShow, Swidth, Sheight - 600, false);
@@ -214,13 +217,13 @@ public class Grabcut extends Fragment implements OnTouchListener {
             }
 
         });
-        /**Button recButton = (Button) v.findViewById(R.id.buttonRec);
+        Button recButton = (Button) v.findViewById(R.id.buttonRec);
         recButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                frameTransit();
+                Undoall();
             }
-        });**/
+        });
 
 
         /**if (iv.getDrawable() instanceof BitmapDrawable) {
@@ -287,6 +290,29 @@ public class Grabcut extends Fragment implements OnTouchListener {
         setImage(bitmap);
 
         return v;
+    }
+
+    private void Undoall() {
+        bitmap = bitmapOrigin;
+        bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        bitmapResult = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        bitmap = getResizedBitmap(bitmap, 512);
+        bitmapResult = getResizedBitmap(bitmapResult, 512);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        this.getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        Sheight = displayMetrics.heightPixels;
+        Swidth = displayMetrics.widthPixels;
+        bitShow = Bitmap.createScaledBitmap(bitmap, Swidth, Sheight - 600, false);
+        iv.setImageBitmap(bitShow);
+
+        //bitmapResult
+        img = new Mat();
+        Utils.bitmapToMat(bitmap, img);
+        mask = new Mat(img.size(), CvType.CV_8UC1);
+        bitmap.getWidth();
+        setImage(bitmap);
+
     }
 
     public Bitmap toGrayscale(Bitmap bmpOriginal) {
