@@ -58,7 +58,7 @@ public class VideoSegmentation extends Activity{
     private static final int inchannels = 3;
     private static final int outchannels = 1;
 
-    private static final boolean useGpu = false;        // cant use gpu with quantized model(uint8 input)
+    private static final boolean useGpu = false;
     private static final String DIRECTORY_PICTURES = "Pictures";
     private static final String TAG = "videosegmentation";
 
@@ -69,8 +69,8 @@ public class VideoSegmentation extends Activity{
     public double fps;
 
 
-    private ByteBuffer inpImg;                          // model input buffer(uint8)
-    //private int[][][][] outImg;                            // model output buffer(int32)
+    private ByteBuffer inpImg;
+    //private int[][][][] outImg;
     private long[][] outImg;
 
     public Mat[] mattmp = new Mat[200];
@@ -311,9 +311,9 @@ public class VideoSegmentation extends Activity{
     }
 
     private Mat loadBufferToMat(Mat modelMat, int count) {
-        //convert tensorflowlite output to opencv mat
-        //boolean[] classesFound = new boolean[2];                               // temp bollean mask over calsses found
-        Mat temp_outSegment = new Mat(height, width, CvType.CV_32SC4);  // temp mask(Mat) -> class colors(int32)
+        //tflite output to opencv mat
+        //boolean[] classesFound = new boolean[2];
+        Mat temp_outSegment = new Mat(height, width, CvType.CV_32SC4);
         Mat tmp = new Mat(513,513,CvType.CV_8UC4);
         // major bottleneck(remove loop - load buffer directly to Mat somehow)
         //Arrays.fill(classesFound, false);
