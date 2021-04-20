@@ -46,17 +46,17 @@ import java.util.Locale;
 
 
 public class VideoSegmentation extends Activity{
-    //private static final String MODEL_PATH = "person_segmentation_quantized_unit8_mean0.tflite";    // model to use
+    //private static final String MODEL_PATH2 = "person_segmentation_backup.tflite";    // model to use
     private static final String MODEL_PATH ="person_segmentation.tflite";
     // image buffers shape
-    private static final int DIM_BATCH_SIZE = 1;
-    private static final int DIM_PIXEL_SIZE = 1;
-    //private static final int DIM_HEIGHT = 513;
-    private static final int DIM_HEIGHT = 256;
-    //private static final int DIM_WIDTH = 513;
-    private static final int DIM_WIDTH = 256;
-    private static final int INCHANNELS = 3;
-    private static final int OUTCHANNELS = 1;
+    private static final int batchsize = 1;
+    private static final int pixelsize = 1;
+    //private static final int height = 513;
+    private static final int height = 256;
+    //private static final int width = 513;
+    private static final int width = 256;
+    private static final int inchannels = 3;
+    private static final int outchannels = 1;
 
     private static final boolean useGpu = false;        // cant use gpu with quantized model(uint8 input)
     private static final String DIRECTORY_PICTURES = "Pictures";
@@ -115,12 +115,12 @@ public class VideoSegmentation extends Activity{
 
 
 
-        //inpImg = ByteBuffer.allocateDirect(DIM_BATCH_SIZE * DIM_HEIGHT * DIM_WIDTH * DIM_PIXEL_SIZE * INCHANNELS);
-        inpImg = ByteBuffer.allocate(DIM_BATCH_SIZE * DIM_HEIGHT * DIM_WIDTH * DIM_PIXEL_SIZE * INCHANNELS);
+        //inpImg = ByteBuffer.allocateDirect(batchsize * height * width * pixelsize * inchannels);
+        inpImg = ByteBuffer.allocate(batchsize * height * width * pixelsize * inchannels);
         //inpImg.order(ByteOrder.nativeOrder());
 
-        //outImg = new int[DIM_BATCH_SIZE][DIM_HEIGHT] [ DIM_WIDTH] [ OUTCHANNELS];
-        outImg = new long[DIM_BATCH_SIZE][DIM_BATCH_SIZE * DIM_HEIGHT * DIM_WIDTH * DIM_PIXEL_SIZE ];
+        //outImg = new int[batchsize][height] [ width] [ outchannels];
+        outImg = new long[batchsize][batchsize * height * width * pixelsize ];
 
         colors[0]  = new int[]{255,  255,   255,  0};  displayClass[0]  = true; classNames[0]  = "bg";  ;
         colors[15] = new int[]{0, 0, 0, 255};  displayClass[15] = true;  classNames[15] = "person";
@@ -245,45 +245,6 @@ public class VideoSegmentation extends Activity{
                 }
                 grabber.close();
 
-
-
-
-
-                    /*if(grabber == RETURN_CODE_SUCCESS){
-                        Log.d("avi", "mpeg convert successfully");
-                    }else{
-                        Log.d("mpeg", " mpeg error occurred!");
-                    }*/
-                    /*if(toAvi2 == RETURN_CODE_SUCCESS){
-                        Log.d("avi", "avi convert successfully");
-                    }else{
-                        Log.d("avi", "avi error occurred!");
-                    }*/
-                //cap.open(avifilename);
-                    /*if(cap.isOpened()){
-                        Log.d("vc", "opened");
-                        for(int i = 0; i < (int)cap.get(Videoio.CAP_PROP_FRAME_COUNT); i++){
-
-                        //while(true){
-                            cap.read(inputFrame);
-                            videolength = (int)cap.get(Videoio.CAP_PROP_FRAME_COUNT);
-                            fps = (int)cap.get(Videoio.CAP_PROP_FPS);
-                            //Mat img = inputFrame;
-                            Mat resizeinput = new Mat();
-                            Mat inputtmp = new Mat();
-                            org.opencv.core.Size size = new org.opencv.core.Size(512, 512);
-                            Imgproc.cvtColor(inputFrame, inputtmp, Imgproc.COLOR_RGBA2RGB);
-                            Imgproc.resize(inputtmp,resizeinput, size, 0, 0, Imgproc.INTER_LANCZOS4);
-
-                            loadMatToBuffer(resizeinput);
-                            tflite.run(inpImg, outImg);
-                            loadBufferToMat(resizeinput, i);
-                        }
-                        outputvideo(mattmp);
-                    }else{
-                        Log.d("vc", "failed");
-                    }*/
-
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -296,62 +257,8 @@ public class VideoSegmentation extends Activity{
         }
     }
 
-        /*public void openvideofile(Uri uri) {
-        // segment Mat inplace
-             String path = uri.getPath();
-             VideoCapture cap = new VideoCapture();
-             Mat[] matarray = new Mat[10000];
-             try {
-                 inputstream = new FileInputStream(path+".mp4");
-                 FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputstream);
-                 //AndroidFrameConverter bitmapconverter = new AndroidFrameConverter();
-                 OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat();
-                 grabber.start();;
-                 Mat frame = new Mat();
-                 for(int i = 0; i < grabber.getLengthInVideoFrames(); i++){
-                     Frame ithframe = grabber.grabImage();
-                     //Bitmap bitmap = bitmapconverter.convert(ithframe);
-                     matarray[i] = matConverter.convertToOrgOpenCvCoreMat(ithframe);
-                     loadMatToBuffer(matarray[i]);
-                     tflite.run(inpImg, outImg);
-                     loadBufferToMat(matarray[i], i);
-
-
-
-
-                 }
-                 outputvideo(mattmp[]);
-             } catch (IOException e){
-                 e.printStackTrace();
-             }
-
-        }*/
-        /*public Mat overlayImage(Mat bg, Mat fg, Mat output, cv::Point2i location, double opacity = 1.0)
-        {
-            bg.copyTo(output);
-
-            // start at the row indicated by location, or at row 0 if location.y is negative.
-            for (int y = 0; y < 513; ++y) {
-            // we are done of we have processed all rows of the foreground image.
-
-
-            // start at the column indicated by location, or at column 0 if location.x is negative.
-            for (int x = 0; x < 513; ++x) {
-                // we are done with this row if the column is outside of the foreground image.
-                // determine the opacity of the foregrond pixel, using its fourth (alpha) channel.
-                double opacity_level = ((double)fg.data[y * fg.step1()*fg.elemSize1() + x * fg.channels() + 3]) / 255.;
-                if (opacity >= 0.0 && opacity < 1.0)
-                    opacity_level *= opacity;
-
-                // and now combine the background and foreground pixel, using the opacity, but only if opacity > 0.
-                for (int c = 0; opacity_level > 0 && c < output.channels(); ++c) {
-                    unsigned char foregroundPx = foreground.data[fY * foreground.step + fX * foreground.channels() + c];
-                    unsigned char backgroundPx = background.data[y * background.step + x * background.channels() + c];
-                    output.data[y*output.step + output.channels()*x + c] = backgroundPx * (1.-opacity_level) + foregroundPx * opacity_level;
-                }
-            }
-        }
-        }*/
+        
+        
         private void overlayImage(Mat bg, Mat fg, Point location){
 
             Imgproc.cvtColor(bg, bg, Imgproc.COLOR_RGB2RGBA);
@@ -398,7 +305,7 @@ public class VideoSegmentation extends Activity{
     private void loadMatToBuffer(Mat inMat) {
         //convert opencv mat to tensorflowlite input
         inpImg.rewind();
-        byte[] data = new byte[DIM_WIDTH * DIM_HEIGHT * INCHANNELS];
+        byte[] data = new byte[width * height * inchannels];
         inMat.get(0, 0, data);
         inpImg = ByteBuffer.wrap(data);
     }
@@ -406,15 +313,15 @@ public class VideoSegmentation extends Activity{
     private Mat loadBufferToMat(Mat modelMat, int count) {
         //convert tensorflowlite output to opencv mat
         //boolean[] classesFound = new boolean[2];                               // temp bollean mask over calsses found
-        Mat temp_outSegment = new Mat(DIM_HEIGHT, DIM_WIDTH, CvType.CV_32SC4);  // temp mask(Mat) -> class colors(int32)
+        Mat temp_outSegment = new Mat(height, width, CvType.CV_32SC4);  // temp mask(Mat) -> class colors(int32)
         Mat tmp = new Mat(513,513,CvType.CV_8UC4);
         // major bottleneck(remove loop - load buffer directly to Mat somehow)
         //Arrays.fill(classesFound, false);
         temp_outSegment.setTo(new Scalar(colors[0][0],colors[0][1],colors[0][2], colors[0][3]));
-        for(int y = 0; y < DIM_HEIGHT; y++) {
-            for(int x = 0; x < DIM_WIDTH; x++) {
+        for(int y = 0; y < height; y++) {
+            for(int x = 0; x < width; x++) {
                 //int cl = (int)outImg[0][y][x][0];
-                int cl = (int)outImg[0][y*DIM_HEIGHT+x];
+                int cl = (int)outImg[0][y*height+x];
                 if (displayClass[cl]){
                     temp_outSegment.put(y, x, colors[cl]);
 
@@ -426,22 +333,7 @@ public class VideoSegmentation extends Activity{
 
         temp_outSegment.convertTo(tmp, CvType.CV_8UC4);
         return tmp;
-
-
-
-
-            /*for(int y = 0; y < DIM_HEIGHT; y++) {
-                for (int x = 0; x < DIM_WIDTH; x++) {
-                    if (mattmp[0]==255)
-
-                }
-            }
-                }*/
-
-            /*for (int c = 0; c < classNames.length; c++) {
-                if (classesFound[c]) classesDetected.add(classNames[c]);
-            }*/
-        //Log.d("vc", "end= "+count);
+        
     }
 
     public void outputvideo(Mat[] array, int count){
@@ -487,51 +379,9 @@ public class VideoSegmentation extends Activity{
                 Log.d("vc", "array: " + i);
             }
             videoWriter.release();
-                /*com.github.dragon66.AnimatedGIFWriter writer = new com.github.dragon66.AnimatedGIFWriter(true);
-                File file = new File(path2);
-                //FileOutputStream out = null;
-
-                try{
-                    if(!file.exists()){
-                        file.getParentFile().mkdir();
-                        file = new File(path2);
-                    }
-                    OutputStream os = new FileOutputStream(file);
-                    for(int i = 0; i < count+1; i++) {
-                        Bitmap bitmap = Bitmap.createBitmap(array[i].width(), array[i].height(), Bitmap.Config.ARGB_8888);
-                        Utils.matToBitmap(array[i], bitmap,true);
-                        writer.prepareForWrite(os, -1, -1);
-                        writer.writeFrame(os, bitmap);
-                        Log.d("vc", "array:" + i);
-                    }
-                    writer.finishWrite(os);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }*/
+                
             try{
-                /*String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
-                    Log.d("vc", "string:" +ffmpeg);
-                ProcessBuilder pb = new ProcessBuilder(ffmpeg, "-i", path, "-loseless", "scale=320:-1:flags=lanczos", "-y",  path2);
-                //ProcessBuilder pb = new ProcessBuilder(ffmpeg, "-y", "-i", path, "-vf", "scale=320:-1:flags=lanczos", "-r", "10", "-f", "image2pipe", "-vcodec" , "ppm", "-", "|", "convert", "-delay", "10", "-loop", "0", "-", "gif:-", "|", "convert", "-layers", "Optimize", "-", path2);
-                    Log.d("vc", "path:" + pb.command().toString());
-
-                pb.inheritIO().start().waitFor();*/
-
-
-
-
-                //boolean success = process.waitFor(timeout.toMillis, TimeUnit.MILLISECONDS); scale=320:-1:flags=lanczos
-
-
-                //String[] cmd = new String[]{"-i", input.mp4 "-vf" "fps=10,scale=320:-1:flags=lanczos" -c:v pam -f image2pipe - | convert -delay 10 - -loop 0 -layers optimize output.gif};
-
-                //FFmpeg.execute("-y " + "-i " + path + " -vf scale=320:-1 -r 10 -f image2pipe -vcodec ppm - | convert -delay 10 -loop 0 - gif:- | convert -layers Optimize - " + path2);
-                //FFmpeg.execute( "-i " + path + " -vcodec " + "libwebp "  + "-q:" + " 60 " +  "-s " + "320:240 " + path2);
-                //FFmpeg.execute("-y -i " + path + " -vcodec libwebp " + "-q 60 " + "-preset default " + "-s 320:240 " + path2);
-                //String command = "-y -i " + path + " -c:v libwebp -filter:v fps=fps20 -lossless 1  -loop 0 -preset default -an -vsync 0 -s 320:240 "  + path2;
-                //String ffmpegCommand = String.format("%s", command.toString());
-                //FFmpeg.execute("-encoders");
-                //FFmpeg.execute("ffmpegCommand");
+                
                 //FFmpeg.execute("-y -i " + path + " -vcodec libwebp -filter:v fps=fps20 -lossless 1  -loop 0 -preset default -an -vsync 0 -s 320:240 "  + path2);
                 int result = FFmpeg.execute("-i " + path + " -vcodec libwebp  -lossless 1  -loop 0 -preset default -an -vsync 0 -s 320:240 "  + path2);
                 /*if (result == 1){
@@ -545,19 +395,7 @@ public class VideoSegmentation extends Activity{
 
 
         }
-                /*else{
-
-                    throw new IllegalArgumentException("error,"
-                            + "check parameters.");
-                }*/
-
-
-
-
-        //Write video
-        //videoWriter.release();
-
-
+        
 
     }
 
